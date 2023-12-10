@@ -10,7 +10,7 @@ if  [ -x "$(command -v java)"    ]; then
 fi
 if  [ -d jdk     ];  then
   echo "已下载完成 正在配置环境变量"
-elif ! [ -f jdk.tar.gz   ]; then 
+elif ! [ -f jdk.zip   ]; then 
 	echo "正在安装"
 	apt install wget -y
 	wget -c https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-11.0.2 -O jdk.zip &&
