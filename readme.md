@@ -8,14 +8,14 @@ pkg update && pkg upgrade
 ```bash
 pkg install wget -y
 ```
-3.下载一键安装脚本
-```bash
+3.下载一键安装脚本<br/>
 安装openjdk11
-wget https://github.com/zryyoung/openjdk-Termux/blob/main/install_jdk11.sh
-```
 ```bash
+wget https://raw.githubusercontent.com/zryyoung/openjdk-Termux/main/install_jdk11.sh
+```
 安装openjdk21
-wget https://github.com/zryyoung/openjdk-Termux/blob/main/install_jdk21.sh
+```bash
+wget https://raw.githubusercontent.com/zryyoung/openjdk-Termux/main/install_jdk21.sh
 ```
 4.执行脚本
 ```bash
