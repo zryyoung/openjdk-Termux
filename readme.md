@@ -12,9 +12,10 @@ pkg install wget -y
 ```bash
 安装openjdk11
 wget https://github.com/zryyoung/openjdk-Termux/blob/main/install_jdk11.sh
-
-安装openjdk11
-wget https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-21.0.1
+```
+```bash
+安装openjdk21
+wget https://github.com/zryyoung/openjdk-Termux/blob/main/install_jdk21.sh
 ```
 4.执行脚本
 ```bash
@@ -26,5 +27,6 @@ java -version
 ```
 jdk21有异常，不过问题不大
 
-### [openjdk-21.0.1-aarch64.zip](https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-21.0.1)
-### [openjdk-11.0.12-aarch64.zip](https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-11.0.12)
+[openjdk-21.0.1-aarch64.zip](https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-21.0.1)
+
+[openjdk-11.0.12-aarch64.zip](https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-11.0.12)
