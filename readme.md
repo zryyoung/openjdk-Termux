@@ -1,5 +1,5 @@
 #          Openjdk for Termux 
-## install
+## Install
 1.更新源
 ```bash
 pkg update && pkg upgrade
