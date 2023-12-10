@@ -13,7 +13,7 @@ if  [ -d jdk     ];  then
 elif ! [ -f jdk.zip   ]; then 
 	echo "正在安装"
 	apt install wget -y
-	wget -c https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-11.0.2 -O jdk.zip &&
+	wget https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-11.0.2 -O jdk.zip &&
 	echo "下载完成  正在解压" 
 fi
 unzip jdk.zip &&
