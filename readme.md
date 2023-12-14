@@ -9,7 +9,7 @@ pkg update && pkg upgrade
 pkg install wget -y
 ```
 3.下载一键安装脚本
-<p>安装openjdk11</p>
+安装openjdk11
 ```bash
 wget https://raw.githubusercontent.com/zryyoung/openjdk-Termux/main/install_jdk11.sh
 ```
