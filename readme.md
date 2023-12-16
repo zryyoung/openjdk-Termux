@@ -39,5 +39,5 @@ wget https://raw.githubusercontent.com/zryyoung/openjdk-Termux/main/install_mave
 ```
 2执行脚本
 ```bash
-bash install_jdk11.sh
+bash install_maven.sh
 ```
