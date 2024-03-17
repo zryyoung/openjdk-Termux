@@ -1,5 +1,5 @@
-#          Openjdk for Termux 
-## Install openjdk
+#      Openjdk for Termux 
+## Install openjdk17/21
 1.更新源
 ```bash
 pkg update && pkg upgrade
@@ -31,7 +31,7 @@ jdk21有异常，不过问题不大
 [openjdk-21.0.1-aarch64.zip](https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-21.0.1)
 
 [openjdk-11.0.12-aarch64.zip](https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-11.0.12)
-## 推荐使用openjdk21的deb安装
+### 推荐使用openjdk21的deb安装
 1. 下载
 ```bash
 wget https://github.com/zryyoung/openjdk-Termux/releases/download/openjdk-21.0.1.deb.zip/OpenJdk-21-and-alot-of-debs.zip
