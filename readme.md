@@ -32,11 +32,20 @@ jdk21有异常，不过问题不大
 
 [openjdk-11.0.12-aarch64.zip](https://github.com/zryyoung/openjdk-Termux/releases/tag/openjdk-11.0.12)
 ## 推荐使用openjdk21的deb安装
-1. 下载 https://github.com/zryyoung/openjdk-Termux/releases/download/openjdk-21.0.1.deb.zip/OpenJdk-21-and-alot-of-debs.zip
-2. 解压安装
-找到 openjdk-21.0.1××.deb
-dpkg -i openjdk-21.0.1××.deb
-
+1. 下载
+```bash
+wget https://github.com/zryyoung/openjdk-Termux/releases/download/openjdk-21.0.1.deb.zip/OpenJdk-21-and-alot-of-debs.zip
+```
+2. 解压
+```bash
+mkdir openjdk21
+unzip OpenJdk-21-and-alot-of-debs.zip -d ~/openjdk21
+```
+3. 安装
+4. ```bash
+cd openjdk21
+dpkg -i openjdk-21_21.0.1_aarch64.deb
+```
 ## install Maven
 1.下载一键脚本
 ```bash
