@@ -39,11 +39,15 @@ wget https://github.com/zryyoung/openjdk-Termux/releases/download/openjdk-21.0.1
 2. 解压
 ```bash
 mkdir openjdk21
+```
+```bash
 unzip OpenJdk-21-and-alot-of-debs.zip -d ~/openjdk21
 ```
 3. 安装
-4. ```bash
+```bash
 cd openjdk21
+```
+```bash
 dpkg -i openjdk-21_21.0.1_aarch64.deb
 ```
 ## install Maven
