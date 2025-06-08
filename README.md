@@ -1,5 +1,5 @@
 #      Openjdk for Termux 
-## Install openjdk17/21
+## Install openjdk11/21
 1.更新源
 ```bash
 pkg update && pkg upgrade
@@ -50,6 +50,8 @@ cd openjdk21
 ```bash
 dpkg -i openjdk-21_21.0.1_aarch64.deb
 ```
+
+
 ## install Maven
 1.下载一键脚本
 ```bash
@@ -59,3 +61,26 @@ wget https://raw.githubusercontent.com/zryyoung/openjdk-Termux/main/install_mave
 ```bash
 bash install_maven.sh
 ```
+
+## 构建 Android 开发编译环境（Termux）
+
+适用于在 Termux 上配置 Android SDK、NDK、构建工具等开发环境，支持 Java/Kotlin 开发与 APK 编译。
+
+---
+
+### 一键安装脚本
+
+```bash
+wget https://raw.githubusercontent.com/zryyoung/openjdk-Termux/main/termux-android-build.sh && bash termux-android-build.sh
+```
+![ NDK 版本](img/Screenshot_2025-06-08-12-20-52-48_84d3000e3f4017145260f7618db1d683.jpg)
+
+### Tips: 安装的基本工具
+
+```bash
+pkg update && pkg upgrade -y
+pkg install termux-services wget aapt aapt2 openjdk-17 gradle unzip -y
+```
+
+
+
