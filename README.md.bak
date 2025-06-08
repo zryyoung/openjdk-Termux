@@ -11,7 +11,7 @@ wget https://raw.githubusercontent.com/zryyoung/openjdk-Termux/main/termux-andro
 ```
 ![ NDK 版本](img/Screenshot_2025-06-08-12-20-52-48_84d3000e3f4017145260f7618db1d683.jpg)
 
-### Tips: 安装的基本工具
+## Tips: 安装的基本工具
 
 ```bash
 pkg update && pkg upgrade -y
