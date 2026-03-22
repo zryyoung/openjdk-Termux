@@ -1,75 +1,156 @@
-name: Build Android NDK (Termux)
+name: Build and Upload Android NDK (android-ndk-r25c)
 
 on:
   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
 
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    env:
+      DOWNLOAD_URL: "https://github.com/zryyoung/openjdk-Termux/releases/download/android-ndk/android-ndk-r25c-aarch64.tgz"
+      TAG_NAME: "android-ndk-r25c"
+      TAR_NAME: "android-ndk-r25c-aarch64-linux-android.tar.xz"
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Prepare workspace
         run: |
-          sudo apt update
-          sudo apt install -y xz-utils tar
+          set -euo pipefail
+          rm -rf workspace
+          mkdir -p workspace
+          cd workspace
+          pwd
 
-      - name: Download NDK
+      - name: Download NDK tarball
         run: |
-          wget -O ndk.tgz https://github.com/zryyoung/openjdk-Termux/releases/download/android-ndk/android-ndk-r25c-aarch64.tgz
+          set -euo pipefail
+          cd workspace
+          echo "Downloading $DOWNLOAD_URL"
+          curl -L -o android-ndk-r25c-aarch64.tgz "$DOWNLOAD_URL"
+          ls -lh android-ndk-r25c-aarch64.tgz
 
-      - name: Extract
+      - name: Extract and rearrange files
         run: |
-          mkdir work
-          tar -xzf ndk.tgz -C work
-          cd work
-          ls
+          set -euo pipefail
+          cd workspace
+          tar -xzf android-ndk-r25c-aarch64.tgz
+          # 删除 bin（如果存在）
+          if [ -d "bin" ]; then
+            rm -rf bin
+          fi
+          # 重命名 android-ndk-aide -> android-ndk-r25c（如果存在）
+          if [ -d "android-ndk-aide" ]; then
+            mv android-ndk-aide android-ndk-r25c
+          fi
+          # 如果已经是 android-ndk-r25c 则保持
+          if [ ! -d "android-ndk-r25c" ]; then
+            echo "Error: expected android-ndk-aide or android-ndk-r25c directory after extraction"
+            ls -la
+            exit 1
+          fi
+          echo "Directory prepared:"
+          ls -la
 
-      - name: Process structure
+      - name: Add source.properties
         run: |
-          cd work
-
-          # 删除 bin
-          rm -rf bin
-
-          # 重命名
-          mv android-ndk-aide android-ndk-r25c
-
-          cd android-ndk-r25c
-
-          # 写入 source.properties
-          cat > source.properties <<EOF
+          set -euo pipefail
+          cd workspace/android-ndk-r25c
+          cat > source.properties <<'EOF'
           Pkg.Desc = Android NDK
           Pkg.Revision = 25.2.9519653
           Pkg.BaseRevision = 25.2.9519653
           Pkg.ReleaseName = r25c
           EOF
+          echo "source.properties created:"
+          sed -n '1,20p' source.properties
 
-          # 处理 prebuilt 软链
-          cd prebuilt
-          ln -s linux-arm64 linux-x86_64 || true
-          cd ..
-
-          # 处理 toolchains/llvm/prebuilt
-          cd toolchains/llvm/prebuilt
-          ln -s linux-arm64 linux-x86_64 || true
-          cd ../../../
-
-      - name: Pack (max compression)
+      - name: Create prebuilt symlink linux-x86_64 -> linux-arm64
         run: |
-          cd work
+          set -euo pipefail
+          cd workspace/android-ndk-r25c
+          if [ -d "prebuilt/linux-arm64" ]; then
+            cd prebuilt
+            if [ -e "linux-x86_64" ]; then
+              echo "prebuilt/linux-x86_64 exists, skipping"
+            else
+              ln -s linux-arm64 linux-x86_64
+              echo "Created prebuilt/linux-x86_64 -> linux-arm64"
+            fi
+          else
+            echo "prebuilt/linux-arm64 not found, skipping"
+          fi
 
-          tar -cf android-ndk-r25c-aarch64-linux-android.tar android-ndk-r25c
-          xz -9 -T0 android-ndk-r25c-aarch64-linux-android.tar
+      - name: Create toolchains symlink linux-x86_64 -> linux-arm64
+        run: |
+          set -euo pipefail
+          cd workspace/android-ndk-r25c
+          if [ -d "toolchains/llvm/prebuilt/linux-arm64" ]; then
+            cd toolchains/llvm/prebuilt
+            if [ -e "linux-x86_64" ]; then
+              echo "toolchains/linux-x86_64 exists, skipping"
+            else
+              ln -s linux-arm64 linux-x86_64
+              echo "Created toolchains/llvm/prebuilt/linux-x86_64 -> linux-arm64"
+            fi
+          else
+            echo "toolchains/llvm/prebuilt/linux-arm64 not found, skipping"
+          fi
 
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v2
+      - name: Pack into tar.xz (extreme compression)
+        run: |
+          set -euo pipefail
+          cd workspace
+          rm -f "$TAR_NAME"
+          # 使用 xz -9e 以获得更高压缩率（先打包为 tar，再用 xz）
+          tar -cf - android-ndk-r25c | xz -9e -c > "$TAR_NAME"
+          ls -lh "$TAR_NAME"
+          echo "SHA256:"
+          sha256sum "$TAR_NAME"
+
+      - name: Create or update Release (tag = android-ndk-r25c)
+        id: create_release
+        uses: actions/create-release@v1
         with:
-          tag_name: android-ndk-r25c
-          name: "android-ndk-r25c"
-          files: work/android-ndk-r25c-aarch64-linux-android.tar.xz
-          overwrite_files: true
+          tag_name: ${{ env.TAG_NAME }}
+          release_name: ${{ env.TAG_NAME }}
+          body: Automated upload of android-ndk-r25c for aarch64
+          draft: false
+          prerelease: false
+          allow_updates: true
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing asset with same name (if any)
+        if: steps.create_release.outputs.upload_url != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPLOAD_URL: ${{ steps.create_release.outputs.upload_url }}
+          ASSET_NAME: ${{ env.TAR_NAME }}
+        run: |
+          set -euo pipefail
+          # List assets for the release, find asset id by name, delete if exists
+          API_URL="${UPLOAD_URL%{?name,label}}"
+          echo "Release assets API: $API_URL"
+          assets_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$API_URL/assets")
+          asset_id=$(echo "$assets_json" | jq -r --arg name "$ASSET_NAME" '.[] | select(.name==$name) | .id' || true)
+          if [ -n "$asset_id" ] && [ "$asset_id" != "null" ]; then
+            echo "Found existing asset id: $asset_id, deleting..."
+            curl -s -X DELETE -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$API_URL/assets/$asset_id"
+            echo "Deleted existing asset."
+          else
+            echo "No existing asset named $ASSET_NAME found."
+          fi
+
+      - name: Upload tar.xz to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: workspace/${{ env.TAR_NAME }}
+          asset_name: ${{ env.TAR_NAME }}
+          asset_content_type: application/x-xz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
