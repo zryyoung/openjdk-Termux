@@ -1,0 +1,73 @@
+name: Build Android NDK (Termux)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y xz-utils tar
+
+      - name: Download NDK
+        run: |
+          wget -O ndk.tgz https://github.com/zryyoung/openjdk-Termux/releases/download/android-ndk/android-ndk-r25c-aarch64.tgz
+
+      - name: Extract
+        run: |
+          mkdir work
+          tar -xzf ndk.tgz -C work
+          cd work
+          ls
+
+      - name: Process structure
+        run: |
+          cd work
+
+          # 删除 bin
+          rm -rf bin
+
+          # 重命名
+          mv android-ndk-aide android-ndk-r25c
+
+          cd android-ndk-r25c
+
+          # 写入 source.properties
+          cat > source.properties <<EOF
+          Pkg.Desc = Android NDK
+          Pkg.Revision = 25.2.9519653
+          Pkg.BaseRevision = 25.2.9519653
+          Pkg.ReleaseName = r25c
+          EOF
+
+          # 处理 prebuilt 软链
+          cd prebuilt
+          ln -s linux-arm64 linux-x86_64 || true
+          cd ..
+
+          # 处理 toolchains/llvm/prebuilt
+          cd toolchains/llvm/prebuilt
+          ln -s linux-arm64 linux-x86_64 || true
+          cd ../../../
+
+      - name: Pack (max compression)
+        run: |
+          cd work
+
+          tar -cf android-ndk-r25c-aarch64-linux-android.tar android-ndk-r25c
+          xz -9 -T0 android-ndk-r25c-aarch64-linux-android.tar
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-ndk
+          files: work/android-ndk-r25c-aarch64-linux-android.tar.xz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
