@@ -1,0 +1,66 @@
+name: Build Android NDK r27b (Termux)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y xz-utils unzip tar wget
+
+      - name: Download NDK r27b
+        run: |
+          wget -O ndk.zip https://github.com/zryyoung/openjdk-Termux/releases/download/android-ndk/android-ndk-r27b-aarch64.zip
+
+      - name: Extract and process
+        run: |
+          mkdir work
+          unzip ndk.zip -d work
+          cd work
+          mv android-ndk-* android-ndk-r27b
+          cd android-ndk-r27b
+
+          # 处理 prebuilt 下软链接
+          if [ -d prebuilt ]; then
+            cd prebuilt
+            for d in *; do
+              if [ "$d" != "linux-x86_64" ]; then
+                ln -sf "$d" linux-x86_64 || true
+                break
+              fi
+            done
+            cd ..
+          fi
+
+          # 处理 toolchains/llvm/prebuilt 下软链接
+          if [ -d toolchains/llvm/prebuilt ]; then
+            cd toolchains/llvm/prebuilt
+            for d in *; do
+              if [ "$d" != "linux-x86_64" ]; then
+                ln -sf "$d" linux-x86_64 || true
+                break
+              fi
+            done
+            cd ../../../
+          fi
+
+          # 压缩为 tar.xz
+          tar -cJf android-ndk-r27b-aarch64-linux-android.tar.xz -I "xz -9 -T2" android-ndk-r27b
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-ndk-r27b
+          name: "android-ndk-r27b"
+          files: work/android-ndk-r27b-aarch64-linux-android.tar.xz
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
