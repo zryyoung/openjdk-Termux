@@ -1,0 +1,70 @@
+name: Build and Upload Android NDK (android-ndk-r27b)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    env:
+      DOWNLOAD_URL: "https://github.com/zryyoung/openjdk-Termux/releases/download/android-ndk/android-ndk-r27b-aarch64.zip"
+      TAG_NAME: "android-ndk-r27b"
+      TAR_NAME: "android-ndk-r27b-aarch64-linux-android.tar.xz"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare workspace
+        run: |
+          set -euo pipefail
+          rm -rf workspace
+          mkdir workspace
+
+      - name: Download
+        run: |
+          set -euo pipefail
+          cd workspace
+          curl -L -o ndk.zip "$DOWNLOAD_URL"
+          ls -lh
+
+      - name: Extract
+        run: |
+          set -euo pipefail
+          cd workspace
+          unzip ndk.zip
+
+          # 校验目录
+          if [ ! -d "android-ndk-r27b" ]; then
+            echo "NDK dir not found!"
+            ls -la
+            exit 1
+          fi
+
+      - name: Extreme Compress
+        run: |
+          set -euo pipefail
+          cd workspace
+
+          tar -cf - android-ndk-r27b | xz -T0 -9e \
+          --lzma2=dict=256MiB,mf=bt4,nice=273 \
+          -c > "$TAR_NAME"
+
+          ls -lh "$TAR_NAME"
+          sha256sum "$TAR_NAME"
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          files: workspace/${{ env.TAR_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,110 @@
+name: Build and Upload Android NDK (android-ndk-r25c)
+
+#on:
+#  workflow_dispatch:
+  
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+ 
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    env:
+      DOWNLOAD_URL: "https://github.com/zryyoung/openjdk-Termux/releases/download/android-ndk/android-ndk-r25c-aarch64.tgz"
+      TAG_NAME: "android-ndk-r25c"
+      TAR_NAME: "android-ndk-r25c-aarch64-linux-android.tar.xz"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare workspace
+        run: |
+          set -euo pipefail
+          rm -rf workspace
+          mkdir workspace
+
+      - name: Download
+        run: |
+          set -euo pipefail
+          cd workspace
+          curl -L -o ndk.tgz "$DOWNLOAD_URL"
+          ls -lh
+
+      - name: Extract & Fix Structure
+        run: |
+          set -euo pipefail
+          cd workspace
+
+          tar -xzf ndk.tgz
+
+          # 删除 bin（兼容多种结构）
+          rm -rf bin android-ndk-aide/bin android-ndk-r25c/bin
+
+          # 重命名
+          if [ -d "android-ndk-aide" ]; then
+            mv android-ndk-aide android-ndk-r25c
+          fi
+
+          if [ ! -d "android-ndk-r25c" ]; then
+            echo "NDK directory not found!"
+            ls -la
+            exit 1
+          fi
+
+      - name: Add source.properties
+        run: |
+          set -euo pipefail
+          cd workspace/android-ndk-r25c
+
+          cat > source.properties <<EOF
+          Pkg.Desc = Android NDK
+          Pkg.Revision = 25.2.9519653
+          Pkg.BaseRevision = 25.2.9519653
+          Pkg.ReleaseName = r25c
+          EOF
+
+      - name: Fix symlinks
+        run: |
+          set -euo pipefail
+          cd workspace/android-ndk-r25c
+
+          if [ -d "prebuilt/linux-arm64" ]; then
+            cd prebuilt
+            ln -sf linux-arm64 linux-x86_64
+            cd ..
+          fi
+
+          if [ -d "toolchains/llvm/prebuilt/linux-arm64" ]; then
+            cd toolchains/llvm/prebuilt
+            ln -sf linux-arm64 linux-x86_64
+            cd ../../../..
+          fi
+
+      - name: Extreme Compress
+        run: |
+          set -euo pipefail
+          cd workspace
+
+          tar -cf - android-ndk-r25c | xz -T0 -9e \
+          --lzma2=dict=256MiB,mf=bt4,nice=273 \
+          -c > "$TAR_NAME"
+
+          ls -lh "$TAR_NAME"
+          sha256sum "$TAR_NAME"
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          files: workspace/${{ env.TAR_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
