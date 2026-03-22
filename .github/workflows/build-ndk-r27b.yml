@@ -21,48 +21,24 @@ jobs:
           wget -O ndk.zip https://github.com/zryyoung/openjdk-Termux/releases/download/android-ndk/android-ndk-r27b-aarch64.zip
           unzip ndk.zip -d work
 
-      - name: Process NDK directories
+      - name: Compress NDK (no symlink modifications)
         run: |
           cd work
-          # 找到解压目录
           NDK_DIR=$(find . -mindepth 1 -maxdepth 1 -type d | head -n 1)
           echo "Using NDK directory: $NDK_DIR"
-          cd "$NDK_DIR"
 
-          # prebuilt 下创建软链接
-          if [ -d prebuilt ]; then
-            cd prebuilt
-            for d in *; do
-              if [ "$d" != "linux-x86_64" ]; then
-                ln -sf "$d" linux-x86_64 || true
-                break
-              fi
-            done
-            cd ..
-          fi
-
-          # toolchains/llvm/prebuilt 下创建软链接
-          if [ -d toolchains/llvm/prebuilt ]; then
-            cd toolchains/llvm/prebuilt
-            for d in *; do
-              if [ "$d" != "linux-x86_64" ]; then
-                ln -sf "$d" linux-x86_64 || true
-                break
-              fi
-            done
-            cd ../../../
-          fi
-
-          # 压缩文件
           TAR_NAME=android-ndk-r27b-aarch64-linux-android.tar.xz
-          tar -cf "$TAR_NAME" -I "xz -9 -T2" .
+
+          # ⭐ 直接压缩，不进入目录，不修改任何文件
+          tar -C "$NDK_DIR" -cf "$TAR_NAME" -I "xz -9 -T2" .
+
           echo "Compressed file: work/$TAR_NAME"
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-ndk-r27b       # Release tag
-          name: android-ndk-r27b           # Release name
+          tag_name: android-ndk-r27b
+          name: android-ndk-r27b
           files: work/android-ndk-r27b-aarch64-linux-android.tar.xz
           overwrite_files: true
         env:
