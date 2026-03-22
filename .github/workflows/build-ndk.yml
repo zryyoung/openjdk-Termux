@@ -68,6 +68,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-ndk-r25c
+          name: "android-ndk-r25c"
           files: work/android-ndk-r25c-aarch64-linux-android.tar.xz
+          overwrite_files: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
