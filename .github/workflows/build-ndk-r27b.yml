@@ -34,12 +34,24 @@ jobs:
 
           echo "Compressed file: work/$TAR_NAME"
 
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: android-ndk-r27b
-          name: android-ndk-r27b
-          files: work/android-ndk-r27b-aarch64-linux-android.tar.xz
-          overwrite_files: true
+      - name: Upload Release via gh CLI
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd work
+
+          TAG="android-ndk-r27b"
+          NAME="android-ndk-r27b"
+          FILE="android-ndk-r27b-aarch64-linux-android.tar.xz"
+
+          # 如果 Release 不存在则创建
+          gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1 \
+            || gh release create "$TAG" "$FILE" \
+                 --repo "${{ github.repository }}" \
+                 --title "$NAME" \
+                 --notes "Android NDK r27b (Termux build)"
+
+          # 如果 Release 已存在，则覆盖上传
+          gh release upload "$TAG" "$FILE" \
+            --repo "${{ github.repository }}" \
+            --clobber
