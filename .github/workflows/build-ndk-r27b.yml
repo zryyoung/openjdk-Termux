@@ -55,7 +55,7 @@ jobs:
 
           # 压缩文件
           TAR_NAME=android-ndk-r27b-aarch64-linux-android.tar.xz
-          tar -cf "$TAR_NAME" -I "xz -9 -T2" "$NDK_DIR"
+          tar -cf "$TAR_NAME" -I "xz -9 -T2" .
           echo "Compressed file: work/$TAR_NAME"
 
       - name: Upload to Release
